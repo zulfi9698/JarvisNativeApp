@@ -137,13 +137,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun updateUI(mode: String, htmlText: String) {
-        val safe = htmlText.replace("'", "\'").replace("
-", "<br>")
-        runOnUiThread {
-            webView.evaluateJavascript("setMode('$mode', '$safe')", null)
-        }
+    private fun updateUI(mode: String, text: String) {
+    val safeText = text.replace("'", "\\'").replace("\n", " ")
+    runOnUiThread {
+        webView.evaluateJavascript("setMode('$mode', '$safeText')", null)
     }
+}
 
     private fun setupSpeechRecognizer() {
         speechRecognizer?.destroy()
