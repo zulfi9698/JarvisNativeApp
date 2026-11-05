@@ -1,50 +1,242 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
+  * { box-sizing: border-box; user-select: none; }
   body {
     margin: 0;
-    background: radial-gradient(circle at center, #041424 0%, #000000 85%);
+    background: radial-gradient(circle at center, #061b30 0%, #01060d 90%);
     color: #00f0ff;
     font-family: 'Courier New', monospace;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: space-between;
     height: 100vh;
     overflow: hidden;
-    user-select: none;
   }
-  .hud-header {
-    margin-top: 25px;
-    text-align: center;
-    letter-spacing: 3px;
-    text-shadow: 0 0 12px #00f0ff;
-    font-size: 14px;
+  /* Top HUD Bar */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(0, 20, 40, 0.6);
+  }
+  .sys-info { font-size: 11px; line-height: 1.4; }
+  .badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid #00f0ff;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-top: 3px;
+  }
+  .btn-hud {
+    background: rgba(0, 240, 255, 0.12);
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  }
+  .btn-hud:active { background: #00f0ff; color: #000; }
+
+  /* App Modules Control Bar */
+  .module-grid {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 10px;
+    background: rgba(0, 15, 30, 0.5);
+    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+  }
+  .mod-chip {
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    color: rgba(0, 240, 255, 0.5);
+  }
+  .mod-chip.active {
+    background: rgba(0, 240, 255, 0.25);
+    color: #ffffff;
+    border-color: #00f0ff;
+    box-shadow: 0 0 8px #00f0ff;
+  }
+
+  /* Center Reactor Area */
+  .center-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+  .status-banner {
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px #00f0ff;
+    color: #00ffcc;
   }
   canvas {
-    filter: drop-shadow(0 0 18px #00f0ff);
+    filter: drop-shadow(0 0 16px #00f0ff);
   }
-  .chat-box {
-    width: 88%;
-    min-height: 90px;
-    margin-bottom: 35px;
-    padding: 15px;
-    border: 1px solid rgba(0, 240, 255, 0.4);
-    background: rgba(0, 30, 50, 0.35);
-    border-radius: 10px;
-    text-align: center;
-    font-size: 15px;
-    line-height: 1.5;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.15) inset;
+
+  /* Live Console & Command Box */
+  .bottom-deck {
+    padding: 10px 14px 16px 14px;
+    background: rgba(0, 12, 24, 0.85);
+    border-top: 1px solid rgba(0, 240, 255, 0.35);
+  }
+  .chat-log {
+    height: 75px;
+    overflow-y: auto;
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(0, 25, 45, 0.4);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+  .input-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .cmd-input {
+    flex: 1;
+    background: rgba(0, 20, 35, 0.8);
+    border: 1px solid #00f0ff;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .action-row button { flex: 1; }
+
+  /* Settings Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 5, 12, 0.95);
+    z-index: 999;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #00f0ff;
+    padding-bottom: 8px;
+  }
+  .field-group { margin-bottom: 14px; text-align: left; }
+  .field-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #80f8ff; }
+  .field-group input, .field-group select {
+    width: 100%;
+    padding: 10px;
+    background: #021224;
+    border: 1px solid #00f0ff;
+    color: #fff;
+    border-radius: 5px;
+    font-family: inherit;
   }
 </style>
 </head>
 <body>
-  <div class="hud-header" id="status">SYSTEM ONLINE // WAKE WORD: "JARVIS" OR "ZULFI"</div>
-  <canvas id="core" width="320" height="320" onclick="triggerMic()"></canvas>
-  <div class="chat-box" id="response">Tap the Arc Reactor or say "Jarvis" / "Zulfi" to begin...</div>
+
+  <!-- TOP HUD -->
+  <div class="top-bar">
+    <div class="sys-info">
+      <div><b>J.A.R.V.I.S. OS v2.0</b> // ZULFI CORE</div>
+      <div class="badge" id="accStatus">ACCESSIBILITY: CHECKING</div>
+    </div>
+    <button class="btn-hud" onclick="openSettings()">⚙️ SETTINGS</button>
+  </div>
+
+  <!-- APP CONNECTION TOGGLES -->
+  <div class="module-grid">
+    <div class="mod-chip active" onclick="toggleMod(this, 'whatsapp')">WhatsApp</div>
+    <div class="mod-chip active" onclick="toggleMod(this, 'insta')">Instagram</div>
+    <div class="mod-chip active" onclick="toggleMod(this, 'youtube')">YouTube</div>
+    <div class="mod-chip active" onclick="toggleMod(this, 'fb')">Facebook</div>
+    <div class="mod-chip active" onclick="toggleMod(this, 'chrome')">GitHub/Web</div>
+  </div>
+
+  <!-- ARC REACTOR CORE -->
+  <div class="center-stage">
+    <div class="status-banner" id="status">READY // TAP CORE OR SPEAK</div>
+    <canvas id="core" width="260" height="260" onclick="triggerMic()"></canvas>
+  </div>
+
+  <!-- BOTTOM COMMAND DECK -->
+  <div class="bottom-deck">
+    <div class="chat-log" id="response">
+      <b>[SYSTEM]:</b> Welcome Zulfi! Pehle ⚙️ SETTINGS khol kar apni Gemini API Key save karein, phir mic dabayein ya niche type karein.
+    </div>
+    <div class="input-row">
+      <input type="text" id="manualInput" class="cmd-input" placeholder="Yahan likh kar bhi baat kar sakte hain..." />
+      <button class="btn-hud" onclick="sendManualText()">SEND</button>
+    </div>
+    <div class="action-row">
+      <button class="btn-hud" id="micBtn" onclick="triggerMic()">🎙️ LISTEN NOW</button>
+      <button class="btn-hud" onclick="toggleContinuous()" id="loopBtn">🔄 AUTO-WAKE: ON</button>
+      <button class="btn-hud" onclick="stopAll()">🛑 STOP</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal" id="settingsModal">
+    <h3>⚙️ JARVIS CONTROL CENTER</h3>
+
+    <div class="field-group">
+      <label>🔑 Gemini API Key (Google AI Studio):</label>
+      <input type="password" id="apiKeyInput" placeholder="Paste your AIzaSy... key here" />
+    </div>
+
+    <div class="field-group">
+      <label>🗣️ Wake Word Detection:</label>
+      <select id="wakeWordInput">
+        <option value="BOTH">Jarvis & Zulfi (Both Active)</option>
+        <option value="JARVIS">Only "Jarvis"</option>
+        <option value="ZULFI">Only "Zulfi"</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>🌐 Voice Recognition Language:</label>
+      <select id="langInput">
+        <option value="ur-PK">Urdu / Roman Urdu (Pakistan)</option>
+        <option value="en-US">English (US)</option>
+        <option value="hi-IN">Hindi / Urdu Mix</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>🤖 Deep App Control (WhatsApp/Insta Auto-Click):</label>
+      <button class="btn-hud" style="width:100%; padding:10px;" onclick="openAccSettings()">
+        🔓 ENABLE ACCESSIBILITY SERVICE
+      </button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn-hud" style="flex:1; background:#00f0ff; color:#000;" onclick="saveSettings()">💾 SAVE & APPLY</button>
+      <button class="btn-hud" style="flex:1;" onclick="closeSettings()">✖ CLOSE</button>
+    </div>
+  </div>
 
 <script>
 const canvas = document.getElementById('core');
@@ -52,21 +244,58 @@ const ctx = canvas.getContext('2d');
 let angle = 0;
 let pulseSpeed = 0.03;
 let coreScale = 1.0;
+let coreColor = '#00f0ff';
+
+function toggleMod(el, modName) {
+  el.classList.toggle('active');
+  const enabled = el.classList.contains('active');
+  if (window.AndroidBridge) window.AndroidBridge.setModuleState(modName, enabled);
+}
 
 function setMode(mode, text) {
-  if (text) document.getElementById('response').innerText = text;
+  if (text) {
+    const log = document.getElementById('response');
+    log.innerHTML = text;
+    log.scrollTop = log.scrollHeight;
+  }
+  const st = document.getElementById('status');
   if (mode === 'listening') {
-    document.getElementById('status').innerText = "LISTENING COMMAND...";
-    pulseSpeed = 0.08;
+    st.innerText = "🎙️ LISTENING... SPEAK NOW";
+    st.style.color = "#00ff88";
+    coreColor = "#00ff88";
+    pulseSpeed = 0.09;
     coreScale = 1.15;
+  } else if (mode === 'thinking') {
+    st.innerText = "🧠 JARVIS THINKING...";
+    st.style.color = "#ffcc00";
+    coreColor = "#ffcc00";
+    pulseSpeed = 0.16;
+    coreScale = 1.08;
   } else if (mode === 'speaking') {
-    document.getElementById('status').innerText = "JARVIS RESPONDING...";
-    pulseSpeed = 0.14;
+    st.innerText = "🔊 JARVIS SPEAKING...";
+    st.style.color = "#00f0ff";
+    coreColor = "#00f0ff";
+    pulseSpeed = 0.13;
     coreScale = 1.25;
   } else {
-    document.getElementById('status').innerText = "ONLINE // SAY 'JARVIS' OR 'ZULFI'";
+    st.innerText = "STANDBY // TAP CORE OR MIC";
+    st.style.color = "#00f0ff";
+    coreColor = "#00f0ff";
     pulseSpeed = 0.03;
     coreScale = 1.0;
+  }
+}
+
+function updateAccBadge(isEnabled) {
+  const b = document.getElementById('accStatus');
+  if (isEnabled) {
+    b.innerText = "ACCESSIBILITY: CONNECTED";
+    b.style.borderColor = "#00ff88";
+    b.style.color = "#00ff88";
+  } else {
+    b.innerText = "ACCESSIBILITY: OFF";
+    b.style.borderColor = "#ff4444";
+    b.style.color = "#ff4444";
   }
 }
 
@@ -74,42 +303,100 @@ function triggerMic() {
   if (window.AndroidBridge) window.AndroidBridge.startListeningNow();
 }
 
+function stopAll() {
+  if (window.AndroidBridge) window.AndroidBridge.stopEverything();
+}
+
+let autoWake = true;
+function toggleContinuous() {
+  autoWake = !autoWake;
+  document.getElementById('loopBtn').innerText = autoWake ? "🔄 AUTO-WAKE: ON" : "🔄 AUTO-WAKE: OFF";
+  if (window.AndroidBridge) window.AndroidBridge.setAutoWake(autoWake);
+}
+
+function sendManualText() {
+  const inp = document.getElementById('manualInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  inp.value = "";
+  if (window.AndroidBridge) window.AndroidBridge.sendTextCommand(val);
+}
+
+function openSettings() {
+  if (window.AndroidBridge) {
+    document.getElementById('apiKeyInput').value = window.AndroidBridge.getSavedApiKey();
+    document.getElementById('langInput').value = window.AndroidBridge.getSavedLang();
+  }
+  document.getElementById('settingsModal').style.display = 'block';
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').style.display = 'none';
+}
+
+function saveSettings() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const lang = document.getElementById('langInput').value;
+  const wake = document.getElementById('wakeWordInput').value;
+  if (window.AndroidBridge) {
+    window.AndroidBridge.saveConfig(key, lang, wake);
+  }
+  closeSettings();
+}
+
+function openAccSettings() {
+  if (window.AndroidBridge) window.AndroidBridge.openAccessibilitySettings();
+}
+
 function draw() {
-  ctx.clearRect(0, 0, 320, 320);
-  const cx = 160, cy = 160;
+  ctx.clearRect(0, 0, 260, 260);
+  const cx = 130, cy = 130;
   angle += pulseSpeed;
 
-  // Outer rotating segmented ring
+  // Outer HUD ring
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(angle * 0.5);
-  ctx.strokeStyle = '#00f0ff';
+  ctx.rotate(angle * 0.4);
+  ctx.strokeStyle = coreColor;
   ctx.lineWidth = 3;
   for (let i = 0; i < 6; i++) {
     ctx.beginPath();
-    ctx.arc(0, 0, 125, i * Math.PI / 3, i * Math.PI / 3 + 0.6);
+    ctx.arc(0, 0, 105, i * Math.PI / 3, i * Math.PI / 3 + 0.65);
     ctx.stroke();
   }
   ctx.restore();
 
-  // Middle counter-rotating ring
+  // Middle technical ring
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(-angle * 0.8);
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+  ctx.rotate(-angle * 0.7);
+  ctx.strokeStyle = coreColor;
   ctx.lineWidth = 2;
-  ctx.setLineDash([12, 8]);
+  ctx.setLineDash([10, 7]);
   ctx.beginPath();
-  ctx.arc(0, 0, 95, 0, Math.PI * 2);
+  ctx.arc(0, 0, 78, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 
-  // Pulsing Core
-  const r = (45 + Math.sin(angle * 2) * 8) * coreScale;
-  const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, r);
+  // Inner spinning triangle ticks
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle * 1.1);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 55, i * Math.PI / 2, i * Math.PI / 2 + 0.3);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Glowing Core
+  const r = (38 + Math.sin(angle * 2) * 6) * coreScale;
+  const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, r);
   grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.4, '#00f0ff');
-  grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+  grad.addColorStop(0.45, coreColor);
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
