@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at center, #041424 0%, #000000 85%);
+    color: #00f0ff;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+  .hud-header {
+    margin-top: 25px;
+    text-align: center;
+    letter-spacing: 3px;
+    text-shadow: 0 0 12px #00f0ff;
+    font-size: 14px;
+  }
+  canvas {
+    filter: drop-shadow(0 0 18px #00f0ff);
+  }
+  .chat-box {
+    width: 88%;
+    min-height: 90px;
+    margin-bottom: 35px;
+    padding: 15px;
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    background: rgba(0, 30, 50, 0.35);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.5;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.15) inset;
+  }
+</style>
+</head>
+<body>
+  <div class="hud-header" id="status">SYSTEM ONLINE // WAKE WORD: "JARVIS" OR "ZULFI"</div>
+  <canvas id="core" width="320" height="320" onclick="triggerMic()"></canvas>
+  <div class="chat-box" id="response">Tap the Arc Reactor or say "Jarvis" / "Zulfi" to begin...</div>
+
+<script>
+const canvas = document.getElementById('core');
+const ctx = canvas.getContext('2d');
+let angle = 0;
+let pulseSpeed = 0.03;
+let coreScale = 1.0;
+
+function setMode(mode, text) {
+  if (text) document.getElementById('response').innerText = text;
+  if (mode === 'listening') {
+    document.getElementById('status').innerText = "LISTENING COMMAND...";
+    pulseSpeed = 0.08;
+    coreScale = 1.15;
+  } else if (mode === 'speaking') {
+    document.getElementById('status').innerText = "JARVIS RESPONDING...";
+    pulseSpeed = 0.14;
+    coreScale = 1.25;
+  } else {
+    document.getElementById('status').innerText = "ONLINE // SAY 'JARVIS' OR 'ZULFI'";
+    pulseSpeed = 0.03;
+    coreScale = 1.0;
+  }
+}
+
+function triggerMic() {
+  if (window.AndroidBridge) window.AndroidBridge.startListeningNow();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 320, 320);
+  const cx = 160, cy = 160;
+  angle += pulseSpeed;
+
+  // Outer rotating segmented ring
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle * 0.5);
+  ctx.strokeStyle = '#00f0ff';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 125, i * Math.PI / 3, i * Math.PI / 3 + 0.6);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Middle counter-rotating ring
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-angle * 0.8);
+  ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([12, 8]);
+  ctx.beginPath();
+  ctx.arc(0, 0, 95, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Pulsing Core
+  const r = (45 + Math.sin(angle * 2) * 8) * coreScale;
+  const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, r);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.4, '#00f0ff');
+  grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
